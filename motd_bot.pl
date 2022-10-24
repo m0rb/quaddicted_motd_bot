@@ -51,31 +51,32 @@ my $desc = HTML::FormatText::Lynx->new(
     lynx_options => ['-nolist']
 )->format( $db->{$entry}->{"description"} );
 
-my $output =
-    "Author: "
-  . $db->{$entry}->{"author"} . "\n"
-  . "Title: "
-  . $db->{$entry}->{"title"} . "\n"
-  . "Date: "
-  . $db->{$entry}->{"date"} . "\n";
-
-#stop here so we can calculate description and tag whitespace truncation
-
 my $urlbase = "https://www.quaddicted.com/reviews";
-my $ssurl   = $urlbase . "/screenshots//$entry.jpg";
+my $ssurl   = $urlbase . "/screenshots/$entry.jpg";
 my $enurl   = $urlbase . "/$entry.html";
-my $outlen  = length $output;
 my $desclen = length $desc;
 my $taglen  = 0;
+my $tagmax  = 8;
 my $tagout  = '';
-my $ml      = 260;
+my $ml      = 256;
+my $authors = $db->{$entry}->{"author"};
+my $authbuf; 
+
+
+if (length $authors >= 75) {
+    $authbuf = (substr $authors,0,75) . "...";
+  } else { 
+    $authbuf .= $authors;
+}
 
 #dumb tag handler
+
 if ( $db->{$entry}->{'tags'} ) {
     my $test = $db->{$entry}->{'tags'}->{'tag'};
     if ( ref $test ) {
         my @tags = @{ $db->{$entry}->{'tags'}->{'tag'} };
         $taglen = scalar @tags;
+        if ($taglen > $tagmax) { $taglen = $tagmax; }
         for ( my $i = 0 ; $i < $taglen ; $i++ ) {
             $tags[$i] =~ s/(\ |-)//g;
             $tagout .= "#" . $tags[$i] . " ";
@@ -86,16 +87,30 @@ if ( $db->{$entry}->{'tags'} ) {
     }
 }
 
-my $descbuf = substr $desc, 0, ( $ml - ( $outlen + $taglen ) );
-$output .= $descbuf . "\n" . $enurl . "\n" . $tagout;
+my $output =
+    "Author(s): "
+  . $authbuf . "\n"
+  . "Title: "
+  . $db->{$entry}->{"title"} . "\n"
+  . "Date: "
+  . $db->{$entry}->{"date"} . "\n";
 
-print $output. "\n";
-print length $output."\n";
+my $outlen  = length $output;
+my $descbuf = substr $desc, 0, ( $ml - ( $outlen + $taglen ) );
+
+if ($outlen <= 250) {
+    $output .= $descbuf . "\n";
+}
+
+$output .= $enurl . "\n" . $tagout;
+
+print $output . "\n";
+print length $output . "\n";
 
 my $status_update = { status => $output };
 
 if (fetch($ssurl)) {
-                $status_update->{media_ids} = &chunklet;
+    $status_update->{media_ids} = &chunklet;
 }
 
 $nt->update($status_update);
