@@ -109,9 +109,10 @@ print length $output . "\n";
 
 my $status_update = { status => $output };
 
-if (fetch($ssurl)) {
-    $status_update->{media_ids} = &chunklet;
+unless (fetch($ssurl)) {
+    $fn = "no_screenshot.jpg";
 }
+$status_update->{media_ids} = &chunklet;
 
 $nt->update($status_update);
 
