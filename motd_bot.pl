@@ -109,7 +109,7 @@ print length $output . "\n";
 
 my $status_update = { status => $output };
 
-unless (fetch($ssurl)) {
+unless (&fetch($ssurl)) {
     $fn = "no_screenshot.jpg";
 }
 $status_update->{media_ids} = &chunklet;
@@ -125,7 +125,9 @@ sub fetch {
         open( my $FH, ">", $fn );
         print $FH $ua->request($req)->content;
         close $FH;
-    }
+    } else {
+        return 0;
+  }
 }
 
 sub chunklet {
