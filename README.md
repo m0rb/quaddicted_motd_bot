@@ -5,5 +5,5 @@
 Inspired by Spirit's prior art.
 
 
-[Twitter](https://twitter.com/quaddicted_motd)
-[Mastodon](https://botsin.space/@quaddicted_motd)
+[Twitter](https://twitter.com/quaddicted_motd)<br>
+<a rel="me" href="https://botsin.space/@quaddicted_motd">Mastodon</a>
