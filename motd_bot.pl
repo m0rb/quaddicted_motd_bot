@@ -12,6 +12,7 @@ use utf8;
 use List::Util qw(shuffle);
 use HTML::FormatText::Lynx;
 use Config::IniFiles;
+use Mastodon::Client;
 use LWP::UserAgent;
 use MIME::Base64;
 use Net::Twitter;
@@ -26,13 +27,25 @@ my $csec = $settings->val( 'twitter', 'csec' );
 my $at   = $settings->val( 'twitter', 'at'   );
 my $asec = $settings->val( 'twitter', 'asec' );
 ################################################################
+my $mins = $settings->val( 'mastodon', 'ins' ); 
+my $mkey = $settings->val( 'mastodon', 'ckey');
+my $msec = $settings->val( 'mastodon', 'csec');
+my $mat  = $settings->val( 'mastodon', 'at'  );
+################################################################
 my $nt = Net::Twitter->new(
     traits              => [qw/API::RESTv1_1/],
     consumer_key        => $ckey,
     consumer_secret     => $csec,
     access_token        => $at,
     access_token_secret => $asec,
-    ssl                 => '1',
+    ssl                 => 1,
+);
+my $mt = Mastodon::Client->new( 
+    instance            => $mins,
+    client_id           => $mkey,
+    client_secret       => $msec,
+    access_token        => $mat,
+    coerce_entities     => 0,
 );
 die unless $nt->authorized;
 
@@ -115,6 +128,9 @@ unless (&fetch($ssurl)) {
 $status_update->{media_ids} = &chunklet;
 
 $nt->update($status_update);
+
+my $mm = $mt->upload_media($fn);
+$mt->post_status($output,{ media_ids => [ $mm->{'id'} ]});
 
 sub fetch {
     my ($file) = @_;
