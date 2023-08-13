@@ -11,6 +11,6 @@ Inspired by Spirit's prior art.
 
 ### Bluesky / ATProto 
 
-[Perl module](https://betterprogramming.pub/building-a-perl-module-for-posting-to-bluesky-social-92fc732fc297)by [William Shunn](https://shunn.net)
+[Perl module](https://betterprogramming.pub/building-a-perl-module-for-posting-to-bluesky-social-92fc732fc297) by [William Shunn](https://shunn.net)
 
 
