@@ -9,6 +9,8 @@ use strict;
 use warnings;
 use utf8;
 
+use lib ".";
+use MyLib::ATProto qw( post_media );
 use List::Util qw(shuffle);
 use HTML::FormatText::Lynx;
 use Config::IniFiles;
@@ -69,15 +71,15 @@ my $ssurl   = $urlbase . "/screenshots/$entry.jpg";
 my $enurl   = $urlbase . "/$entry.html";
 my $desclen = length $desc;
 my $taglen  = 0;
-my $tagmax  = 8;
+my $tagmax  = 5;
 my $tagout  = '';
-my $ml      = 256;
+my $ml      = 250;
 my $authors = $db->{$entry}->{"author"};
 my $authbuf; 
 
 
-if (length $authors >= 75) {
-    $authbuf = (substr $authors,0,75) . "...";
+if (length $authors >= 50) {
+    $authbuf = (substr $authors,0,50) . "...";
   } else { 
     $authbuf .= $authors;
 }
@@ -111,26 +113,34 @@ my $output =
 my $outlen  = length $output;
 my $descbuf = substr $desc, 0, ( $ml - ( $outlen + $taglen ) );
 
-if ($outlen <= 250) {
+if ($outlen + ( length $descbuf ) <= 220 ) {
     $output .= $descbuf . "\n";
 }
 
-$output .= $enurl . "\n" . $tagout;
+$outlen = length $output;
+$output .= $enurl . "\n";
+
+# bluesky can't handle >300c
+if ($outlen + (length $tagout ) + 2 < 300 ) {
+    $output .= $tagout;
+}
 
 print $output . "\n";
 print length $output . "\n";
 
 my $status_update = { status => $output };
 
-unless (&fetch($ssurl)) {
+unless (fetch($ssurl)) {
     $fn = "no_screenshot.jpg";
 }
-$status_update->{media_ids} = &chunklet;
 
+$status_update->{media_ids} = &chunklet;
 $nt->update($status_update);
 
 my $mm = $mt->upload_media($fn);
 $mt->post_status($output,{ media_ids => [ $mm->{'id'} ]});
+
+my $bluesky = post_media({ text => "$output",  account => 'motd', fn => "$fn" });
 
 sub fetch {
     my ($file) = @_;
