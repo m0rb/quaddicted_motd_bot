@@ -339,7 +339,7 @@ sub get_profile {
   
   my $content = decode_json($response->decoded_content);
   # specific to motd bot; strip uri elements for the $link we care about
-  $content->{banner} =~ (s/(.*plain\/|\@jpeg)//g);
+  $content->{banner} =~ (s/(.*plain\/|\@jpeg|did:plc.*\/)//g);
   return $content;
 }
 

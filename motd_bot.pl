@@ -68,7 +68,7 @@ my $desc = HTML::FormatText::Lynx->new(
 
 my $urlbase = "https://www.quaddicted.com/reviews";
 my $ssurl   = $urlbase . "/screenshots/$entry.jpg";
-my $enurl   = $urlbase . "/$entry.html";
+my $enurl   = $urlbase . "/$entry.html"; $enurl =~ (s/\ /+/g);
 my $desclen = length $desc;
 my $taglen  = 0;
 my $tagmax  = 5;
