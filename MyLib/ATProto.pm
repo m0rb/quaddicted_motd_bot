@@ -176,8 +176,8 @@ sub get_connection {
   # initialize new LWP::UserAgent and open new session with host
   my $ua = HTTP::Tiny->new( agent => BSUSERAGENT );
   my $response = $ua->request( 'POST',
-        "https://$cfg->{host}/xrpc/${\CREATESESSION}", { headers => { 'Content-Type' => 'application/json' }, 
-              content => $json }
+        "https://$cfg->{host}/xrpc/${\CREATESESSION}", { headers => 
+              { 'Content-Type' => 'application/json' }, content => $json }
   );
   die Dumper(${response}) . "\n" if !${response}->{'success'};
 
