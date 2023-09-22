@@ -15,7 +15,8 @@ use Data::Dumper;
 use Config::File     qw( read_config_file );
 use DateTime;
 use JSON             qw( encode_json decode_json );
-use LWP::UserAgent;
+#use LWP::UserAgent;
+use HTTP::Tiny;
 use URI;
 use MyLib::Constants qw( CREATESESSION CREATERECORD PUTRECORD RESOLVEHANDLE
                          POSTBLOB FEEDPOST MEDIAPOST FACETLINK FACETMENTION
@@ -50,11 +51,11 @@ sub post_bluesky {
       createdAt => &get_iso_string,
     },
   });
-  my $response = $bs->{ua}->post(
-    "https://$bs->{host}/xrpc/${\CREATERECORD}",
-    Content_Type => 'application/json',
-    Content => $json,
-  );
+  my $response = $bs->{ua}->request( 'POST', 
+        "https://$bs->{host}/xrpc/${\CREATERECORD}", { headers => 
+              { 'Content-Type' => 'application/json' },
+                    content => $json }
+        );
   $response
 }
 
@@ -75,7 +76,7 @@ sub post_media {
     if ($fn =~ /png$/i ) { $filetype = "png"; }
     if ($fn =~ /gif$/i ) { $filetype = "gif"; }
   my $blobref = post_blob({ account => $account, fn => $fn, filetype => $filetype }) || die "blobref\n";
-  my $blobret = decode_json($blobref->decoded_content) || die "json\n";
+  my $blobret = decode_json(${blobref}->{'content'}) || die "json\n";
   my $link = $blobret->{blob}{ref}{'$link'} || die "link\n";
   my $bs = get_connection({ account => $account });
   my $facets = get_facets({ text => $text, bs => $bs });
@@ -97,10 +98,9 @@ sub post_media {
       }, 
     },
   });
-  my $response = $bs->{ua}->post(
-    "https://$bs->{host}/xrpc/${\CREATERECORD}",
-    Content_Type => 'application/json',
-    Content => $json,
+  my $response = $bs->{ua}->request( 'POST',
+        "https://$bs->{host}/xrpc/${\CREATERECORD}", { headers => 
+              {  'Content-Type' => 'application/json' }, content => $json }
   );
   $response
 }
@@ -116,7 +116,7 @@ sub post_avatar {
     if ($fn =~ /png$/i ) { $filetype = "png"; }
     if ($fn =~ /gif$/i ) { $filetype = "gif"; }
   my $blobref = post_blob({ account => $account, fn => $fn, filetype => $filetype }) || die "blobref\n";
-  my $blobret = decode_json($blobref->decoded_content) || die "json\n";
+  my $blobret = decode_json(${blobref}->{'content'}) || die "json\n";
   my $link = $blobret->{blob}{ref}{'$link'} || die "link\n";
   my $bs = get_connection({ account => $account });
   my $facets = get_facets({ bs => $bs });
@@ -142,10 +142,9 @@ sub post_avatar {
     repo => $bs->{did},
     rkey => "self"
   });
-  my $response = $bs->{ua}->post(
-    "https://$bs->{host}/xrpc/${\PUTRECORD}",
-    Content_Type => 'application/json',
-    Content => $json,
+  my $response = $bs->{ua}->request( 'POST', 
+        "https://$bs->{host}/xrpc/${\PUTRECORD}", { headers => 
+              { 'Content-Type' => 'application/json' }, content => $json }
   );
   $response
 }
@@ -175,21 +174,19 @@ sub get_connection {
   });
 
   # initialize new LWP::UserAgent and open new session with host
-  my $ua = LWP::UserAgent->new( agent => BSUSERAGENT );
-  my $response = $ua->post(
-    "https://$cfg->{host}/xrpc/${\CREATESESSION}",
-    Content_Type => 'application/json',
-    Content => $json
+  my $ua = HTTP::Tiny->new( agent => BSUSERAGENT );
+  my $response = $ua->request( 'POST',
+        "https://$cfg->{host}/xrpc/${\CREATESESSION}", { headers => { 'Content-Type' => 'application/json' }, 
+              content => $json }
   );
-  die $response->status_line . "\n" if !$response->is_success;
+  die Dumper(${response}) . "\n" if !${response}->{'success'};
 
   # parse relevant fields from response content
-  my $content = decode_json($response->decoded_content);
+  my $content = decode_json(${response}->{'content'});
   my $did = $content->{did};
   my $access_jwt = $content->{accessJwt};
-
   # add access JWT to agent as default auth header and return hash ref
-  $ua->default_header('Authorization' => 'Bearer ' . $access_jwt);
+  $ua->default_headers({'Authorization' => 'Bearer ' . $access_jwt});
   {
     ua => $ua,
     did => $did,
@@ -294,10 +291,10 @@ sub lookup_repo {
   my $uri = URI->new("https://$bs->{host}/xrpc/${\RESOLVEHANDLE}");
   $uri->query_form( handle => $account );
   my $response = $bs->{ua}->get($uri);
-  return if !$response->is_success;
+  return if !${response}->{'success'};
 
   # parse DID string from response content
-  my $content = decode_json($response->decoded_content);
+  my $content = decode_json(${response}->{'content'});
   $content->{did}
 }
 
@@ -315,10 +312,9 @@ sub post_blob {
   my $bs = get_connection({ account => $account });
   open(IMAGE, $fn); binmode IMAGE; read(IMAGE, my $blob, $fs); close(IMAGE);
  
-  my $response = $bs->{ua}->post(
-    "https://$bs->{host}/xrpc/${\POSTBLOB}",
-    Content_Type => 'image/'.$filetype,
-    Content => $blob,
+  my $response = $bs->{ua}->request( 'POST',
+        "https://$bs->{host}/xrpc/${\POSTBLOB}", { headers => 
+              { 'Content-Type' => 'image/'.$filetype }, content => $blob }
   );
   $response
 }
@@ -335,9 +331,9 @@ sub get_profile {
   my $uri = URI->new("https://$bs->{host}/xrpc/${\GETPROFILE}");
   $uri->query_form ( actor => $actor );
   my $response = $bs->{ua}->get($uri);
-  return if !$response->is_success;
+  return if !${response}->{'success'};
   
-  my $content = decode_json($response->decoded_content);
+  my $content = decode_json(${response}->{'content'});
   # specific to motd bot; strip uri elements for the $link we care about
   $content->{banner} =~ (s/(.*plain\/|\@jpeg|did:plc.*\/)//g);
   return $content;
