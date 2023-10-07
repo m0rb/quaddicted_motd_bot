@@ -17,31 +17,31 @@ use Config::IniFiles;
 use Mastodon::Client;
 use LWP::UserAgent;
 use MIME::Base64;
-use Net::Twitter;
+#use Net::Twitter;
 use XML::Simple;
 
 binmode( STDOUT, ":utf8" );
 
 ################################################################
-my $settings = Config::IniFiles->new( -file => "motd.ini" );
-my $ckey = $settings->val( 'twitter', 'ckey' );
-my $csec = $settings->val( 'twitter', 'csec' );
-my $at   = $settings->val( 'twitter', 'at'   );
-my $asec = $settings->val( 'twitter', 'asec' );
+#my $settings = Config::IniFiles->new( -file => "motd.ini" );
+#my $ckey = $settings->val( 'twitter', 'ckey' );
+#my $csec = $settings->val( 'twitter', 'csec' );
+#my $at   = $settings->val( 'twitter', 'at'   );
+#my $asec = $settings->val( 'twitter', 'asec' );
 ################################################################
 my $mins = $settings->val( 'mastodon', 'ins' ); 
 my $mkey = $settings->val( 'mastodon', 'ckey');
 my $msec = $settings->val( 'mastodon', 'csec');
 my $mat  = $settings->val( 'mastodon', 'at'  );
 ################################################################
-my $nt = Net::Twitter->new(
-    traits              => [qw/API::RESTv1_1/],
-    consumer_key        => $ckey,
-    consumer_secret     => $csec,
-    access_token        => $at,
-    access_token_secret => $asec,
-    ssl                 => 1,
-);
+#my $nt = Net::Twitter->new(
+#    traits              => [qw/API::RESTv1_1/],
+#    consumer_key        => $ckey,
+#    consumer_secret     => $csec,
+#    access_token        => $at,
+#    access_token_secret => $asec,
+#    ssl                 => 1,
+#);
 my $mt = Mastodon::Client->new( 
     instance            => $mins,
     client_id           => $mkey,
@@ -53,6 +53,8 @@ die unless $nt->authorized;
 
 my $xml = XMLin('quaddicted_database.xml');
 my $db  = $xml->{"file"};
+
+START:
 
 srand;
 
@@ -134,13 +136,20 @@ unless (fetch($ssurl)) {
     $fn = "no_screenshot.jpg";
 }
 
-$status_update->{media_ids} = &chunklet;
-$nt->update($status_update);
+#$status_update->{media_ids} = &chunklet;
+#$nt->update($status_update);
 
-my $mm = $mt->upload_media($fn);
-$mt->post_status($output,{ media_ids => [ $mm->{'id'} ]});
+my $bluesky;
 
-my $bluesky = post_media({ text => "$output",  account => 'motd', fn => "$fn" });
+until (defined $bluesky) { 
+      $bluesky = post_media({ text => $output,  account => 'mybot', fn => $fn });
+  }
+eval { my $mm = $mt->upload_media($fn); $mt->post_status($output,{ media_ids => [ $mm->{'id'} ]}) ; };
+exit 0;
+}
+else { 
+      goto START;
+}
 
 sub fetch {
     my ($file) = @_;
