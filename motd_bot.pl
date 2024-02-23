@@ -34,7 +34,6 @@ my $mt = Mastodon::Client->new(
     access_token        => $mat,
     coerce_entities     => 0,
 );
-die unless $nt->authorized;
 
 my $xml = XMLin('quaddicted_database.xml');
 my $db  = $xml->{"file"};
