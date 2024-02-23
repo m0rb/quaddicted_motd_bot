@@ -17,31 +17,16 @@ use Config::IniFiles;
 use Mastodon::Client;
 use LWP::UserAgent;
 use MIME::Base64;
-#use Net::Twitter;
 use XML::Simple;
 
 binmode( STDOUT, ":utf8" );
 
-################################################################
-#my $settings = Config::IniFiles->new( -file => "motd.ini" );
-#my $ckey = $settings->val( 'twitter', 'ckey' );
-#my $csec = $settings->val( 'twitter', 'csec' );
-#my $at   = $settings->val( 'twitter', 'at'   );
-#my $asec = $settings->val( 'twitter', 'asec' );
 ################################################################
 my $mins = $settings->val( 'mastodon', 'ins' ); 
 my $mkey = $settings->val( 'mastodon', 'ckey');
 my $msec = $settings->val( 'mastodon', 'csec');
 my $mat  = $settings->val( 'mastodon', 'at'  );
 ################################################################
-#my $nt = Net::Twitter->new(
-#    traits              => [qw/API::RESTv1_1/],
-#    consumer_key        => $ckey,
-#    consumer_secret     => $csec,
-#    access_token        => $at,
-#    access_token_secret => $asec,
-#    ssl                 => 1,
-#);
 my $mt = Mastodon::Client->new( 
     instance            => $mins,
     client_id           => $mkey,
@@ -136,9 +121,6 @@ unless (fetch($ssurl)) {
     $fn = "no_screenshot.jpg";
 }
 
-#$status_update->{media_ids} = &chunklet;
-#$nt->update($status_update);
-
 my $bluesky;
 
 until (defined $bluesky) { 
@@ -163,42 +145,4 @@ sub fetch {
     } else {
         return 0;
   }
-}
-
-sub chunklet {
-    die unless $nt->authorized;
-    my $fs   = -s $fn;
-    my $si   = 0;
-    my $init = $nt->upload(
-        { command => 'INIT', media_type => 'tweet_image', total_bytes => $fs } )
-      ;
-    my $media_id = $init->{media_id};
-    open( IMAGE, $fn ) ;
-    binmode IMAGE;
-
-    while ( read( IMAGE, my $chunk, 1048576 ) ) {
-        my $file = [
-            undef, 'media',
-            Content_Type => 'form-data',
-            Content      => encode_base64($chunk)
-        ];
-        eval {
-            $nt->upload(
-                {
-                    command       => 'APPEND',
-                    media_id      => $media_id,
-                    segment_index => $si,
-                    media_data    => $file
-                }
-            );
-        };
-        $si += 1;
-    }
-    close(IMAGE);
-    $nt->upload( { command => 'FINALIZE', media_id => $media_id } );
-    #    if ($md) {
-    #    $nt->create_media_metadata(
-    #        { media_id => $media_id, alt_text => { text => $md } } );
-    #}
-    return ($media_id);
 }
