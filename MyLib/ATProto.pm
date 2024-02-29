@@ -254,7 +254,7 @@ sub get_facets {
     } elsif ( $w =~ /^#/) {
       $type = FACETTAG;
       $attrib = 'tag';
-      $val = $w;
+      $val = substr($w, 1);
     }
     if (defined $type) {
       # if we have a match, find its index in the original string,
