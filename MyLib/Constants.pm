@@ -14,7 +14,7 @@ use Exporter 'import';
 our @EXPORT_OK = qw(
         CREATESESSION CREATERECORD PUTRECORD RESOLVEHANDLE
         POSTBLOB FEEDPOST MEDIAPOST FACETLINK FACETMENTION
-        GETPROFILE BSCONFIGFILE BSUSERAGENT BSMAXLENGTH
+        FACETTAG GETPROFILE BSCONFIGFILE BSUSERAGENT BSMAXLENGTH
 );
 
 
@@ -30,6 +30,7 @@ use constant GETPROFILE    => 'app.bsky.actor.getProfile';
 use constant FEEDPOST      => 'app.bsky.feed.post';
 use constant FACETLINK     => 'app.bsky.richtext.facet#link';
 use constant FACETMENTION  => 'app.bsky.richtext.facet#mention';
+use constant FACETTAG      => 'app.bsky.richtext.facet#tag';
 
 
 use constant BSCONFIGFILE => 'config.cfg';

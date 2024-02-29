@@ -19,7 +19,7 @@ use LWP::UserAgent;
 use URI;
 use MyLib::Constants qw( CREATESESSION CREATERECORD PUTRECORD RESOLVEHANDLE
                          POSTBLOB FEEDPOST MEDIAPOST FACETLINK FACETMENTION
-                         GETPROFILE BSCONFIGFILE BSUSERAGENT BSMAXLENGTH );
+                         FACETTAG GETPROFILE BSCONFIGFILE BSUSERAGENT BSMAXLENGTH );
 
 ### EXPORTED METHODS ###
 
@@ -254,6 +254,10 @@ sub get_facets {
         $type = FACETMENTION;
         $attrib = 'did';
       }
+    } elsif ( $w =~ /^#/) {
+      $type = FACETTAG;
+      $attrib = 'tag';
+      $val = w;
     }
     if (defined $type) {
       # if we have a match, find its index in the original string,
