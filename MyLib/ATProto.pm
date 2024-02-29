@@ -251,6 +251,10 @@ sub get_facets {
         $type = FACETMENTION;
         $attrib = 'did';
       }
+    } elsif ( $w =~ /^#/) {
+      $type = FACETTAG;
+      $attrib = 'tag';
+      $val = $w;
     }
     if (defined $type) {
       # if we have a match, find its index in the original string,
