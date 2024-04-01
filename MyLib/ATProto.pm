@@ -9,6 +9,9 @@ package MyLib::ATProto;
 
 use strict;
 use warnings;
+use utf8;
+
+
 use Exporter 'import';
 our @EXPORT_OK = qw( post_bluesky post_blob post_media post_avatar get_profile );
 use Data::Dumper;
@@ -18,6 +21,7 @@ use JSON             qw( encode_json decode_json );
 #use LWP::UserAgent;
 use HTTP::Tiny;
 use URI;
+use Unicode::UTF8    qw ( encode_utf8 );
 use MyLib::Constants qw( CREATESESSION CREATERECORD PUTRECORD RESOLVEHANDLE
                          POSTBLOB FEEDPOST MEDIAPOST FACETLINK FACETMENTION
                          GETPROFILE BSCONFIGFILE BSUSERAGENT BSMAXLENGTH );
@@ -230,7 +234,7 @@ sub get_iso_string {
 sub get_facets {
   my $args = shift || {};
   my $output = [];
-  my $text = $args->{text} || return $output;
+  my $text = encode_utf8($args->{text}) || return $output;
   my $bs = $args->{bs};
   my $pos = 0;
   my $idx = 0;
