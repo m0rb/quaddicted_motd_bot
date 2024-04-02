@@ -237,7 +237,8 @@ sub get_iso_string {
 sub get_facets {
   my $args = shift || {};
   my $output = [];
-  my $text = encode_utf8($args->{text}) || return $output;
+  my $text = $args->{text} || return $output;
+  $text = encode_utf8($text);
   my $bs = $args->{bs};
   my $pos = 0;
   my $idx = 0;
