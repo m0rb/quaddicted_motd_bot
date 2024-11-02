@@ -5,7 +5,7 @@
 Inspired by Spirit's prior art.
 
 
-<a rel="me" href="https://botsin.space/@quaddicted_motd">Mastodon</a><br>[Bluesky](https://staging.bsky.app/profile/motd.cataclysmal.org)<br>
+<a rel="me" href="https://idtech.space/@quaddicted_motd">Mastodon</a><br>[Bluesky](https://staging.bsky.app/profile/motd.cataclysmal.org)<br>
 
 ### Bluesky / ATProto 
 
